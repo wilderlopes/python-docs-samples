@@ -38,7 +38,7 @@ where `<command>` is one of:  `entities`, `sentiment`, or `syntax`.
 
 The script will write to STDOUT the json returned from the API for the requested feature.
 
-For example, if you run:
+* Example1:
 
 ```sh
 $ python analyze.py entities "Tom Sawyer is a book written by a guy known as Mark Twain."
@@ -50,35 +50,121 @@ You will see something like the following returned:
 {
   "entities": [
     {
-      "salience": 0.49785897,
+      "salience": 0.50827783,
       "mentions": [
         {
           "text": {
             "content": "Tom Sawyer",
             "beginOffset": 0
-          }
+          },
+          "type": "PROPER"
         }
       ],
       "type": "PERSON",
       "name": "Tom Sawyer",
       "metadata": {
+        "mid": "/m/01b6vv",
         "wikipedia_url": "http://en.wikipedia.org/wiki/The_Adventures_of_Tom_Sawyer"
       }
     },
     {
-      "salience": 0.12209519,
+      "salience": 0.22226454,
+      "mentions": [
+        {
+          "text": {
+            "content": "book",
+            "beginOffset": 16
+          },
+          "type": "COMMON"
+        }
+      ],
+      "type": "WORK_OF_ART",
+      "name": "book",
+      "metadata": {}
+    },
+    {
+      "salience": 0.18305534,
+      "mentions": [
+        {
+          "text": {
+            "content": "guy",
+            "beginOffset": 34
+          },
+          "type": "COMMON"
+        }
+      ],
+      "type": "PERSON",
+      "name": "guy",
+      "metadata": {}
+    },
+    {
+      "salience": 0.086402282,
       "mentions": [
         {
           "text": {
             "content": "Mark Twain",
             "beginOffset": 47
-          }
+          },
+          "type": "PROPER"
         }
       ],
       "type": "PERSON",
       "name": "Mark Twain",
       "metadata": {
+        "mid": "/m/014635",
         "wikipedia_url": "http://en.wikipedia.org/wiki/Mark_Twain"
+      }
+    }
+  ],
+  "language": "en"
+}
+```
+
+* Example2:
+
+```sh
+$ python analyze.py entities "Apple has launched new iPhone."
+```
+
+You will see something like the following returned:
+
+```
+{
+  "entities": [
+    {
+      "salience": 0.72550339,
+      "mentions": [
+        {
+          "text": {
+            "content": "Apple",
+            "beginOffset": 0
+          },
+          "type": "PROPER"
+        }
+      ],
+      "type": "ORGANIZATION",
+      "name": "Apple",
+      "metadata": {
+        "mid": "/m/0k8z",
+        "wikipedia_url": "http://en.wikipedia.org/wiki/Apple_Inc."
+      }
+    },
+    {
+      "salience": 0.27449661,
+      "mentions": [
+        {
+          "text": {
+            "content": "iPhone",
+            "beginOffset": 23
+          },
+          "type": "PROPER"
+        }
+      ],
+      "type": "CONSUMER_GOOD",
+      "name": "iPhone",
+      "metadata": {
+        "mid": "/m/027lnzs",
+        "wikipedia_url": "http://en.wikipedia.org/wiki/IPhone"
       }
     }
   ],
