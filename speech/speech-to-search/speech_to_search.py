@@ -179,11 +179,12 @@ def request_stream(data_stream, rate):
 def listen_print_loop(recognize_stream):
     global _index
     global _results
-    update_search = True
-    say_update = False
     for resp in recognize_stream:
         if resp.error.code != code_pb2.OK:
             raise RuntimeError('Server error: ' + resp.error.message)
+
+        update_search = True
+        say_update = False
 
         # Exit recognition if any of the transcribed phrases could be
         # one of our keywords.
@@ -198,18 +199,19 @@ def listen_print_loop(recognize_stream):
         if any(re.search(r'\b(next)\b', alt.transcript, re.I)
                for result in resp.results
                for alt in result.alternatives):
+            print('>>> Next result')
             update_search = False
             say_update = True
             _index = _index + 1
-            break
 
         # Retrieve search results using speech result
         if update_search and resp.results:
             for result in resp.results:
                 print('Searching for ' + result.alternatives[0].transcript)
                 google_search(result.alternatives[0].transcript, num=10)
-            say_update = True
-            _index = 0
+                if len(result.alternatives) > 0:
+                    say_update = True
+                    _index = 0
 
         if say_update and _index < len(_results):
             print('Saying: ' + _results[_index]['snippet'])
