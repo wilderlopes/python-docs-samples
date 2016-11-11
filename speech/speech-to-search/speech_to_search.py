@@ -22,6 +22,8 @@ import signal
 import sys
 import subprocess
 import threading
+import urllib
+import webbrowser
 
 from google.cloud import credentials
 from google.cloud.speech.v1beta1 import cloud_speech_pb2 as cloud_speech
@@ -38,6 +40,7 @@ from six.moves import queue
 CSE_KEY = 'YOUR_API_KEY' # Replace with your developer key
 CSE_ID = '00000000012345:aaa7bbb_cc' # Replace with your CSE ID
 USE_OSX_SAY = True # Issues on OSX w/ pyttsx; if true, uses 'Say' alternate
+OPEN_IN_BROWSER = True # If true, only open the result in a browser
 
 # Audio recording parameters
 RATE = 16000
@@ -47,7 +50,7 @@ CHUNK = int(RATE / 10)  # 100ms
 # connection alive for that long, plus some more to give the API time to figure
 # out the transcription.
 # * https://g.co/cloud/speech/limits#content
-DEADLINE_SECS = 60 * 3 + 5
+DEADLINE_SECS = 60 * 3 + 6
 SPEECH_SCOPE = 'https://www.googleapis.com/auth/cloud-platform'
 CSE_SCOPE = 'https://www.googleapis.com/auth/customsearch'
 
@@ -186,7 +189,7 @@ def request_stream(data_stream, rate, interim_results=True):
         yield cloud_speech.StreamingRecognizeRequest(audio_content=data)
 
 
-def listen_print_loop(recognize_stream, stoprequest):
+def listen_search_loop(recognize_stream, stoprequest):
     global _index
     global _results
     last_search = ''
@@ -223,13 +226,14 @@ def listen_print_loop(recognize_stream, stoprequest):
             first_result = resp.results[0].alternatives[0]
             if first_result is not last_search:
                 print('Searching for ' + first_result.transcript)
-                lastSearch = first_result.transcript
-                google_search(lastSearch, num=10)
+                print('Last searched for ' + last_search)
+                last_search = first_result.transcript
+                google_search(last_search, num=10)
                 if len(first_result.transcript) > 0:
                     say_update = True
                     _index = 0
 
-        if say_update and _index < len(_results):
+        if say_update and _index < len(_results) and not OPEN_IN_BROWSER:
             print('Saying: ' + _results[_index]['snippet'])
             say_result(_index);
 
@@ -247,15 +251,19 @@ def say_result(index):
 def google_search(search_term, **kwargs):
     """Uses the custom search to query for the user's utterance."""
     global _results
-    service = build("customsearch", "v1", developerKey=CSE_KEY)
-    res = service.cse().list(q=search_term, cx=CSE_ID, **kwargs).execute()
-    _results = res['items']
+
+    if OPEN_IN_BROWSER:
+      webbrowser.open('https://google.com/#q=' + urllib.quote(search_term))
+    else:
+      service = build("customsearch", "v1", developerKey=CSE_KEY)
+      res = service.cse().list(q=search_term, cx=CSE_ID, **kwargs).execute()
+      _results = res['items']
 
 def main():
     with cloud_speech.beta_create_Speech_stub(
             make_channel('speech.googleapis.com', 443)) as service:
 
-        # stoprequest is event object which is set in `listen_print_loop`
+        # stoprequest is event object which is set in `listen_search_loop`
         # to indicate that the trancsription should be stopped.
         #
         # The `_fill_buffer` thread checks this object, and closes
@@ -276,7 +284,7 @@ def main():
 
             # Now, put the transcription responses to use.
             try:
-                listen_print_loop(recognize_stream, stoprequest)
+                listen_search_loop(recognize_stream, stoprequest)
                 recognize_stream.cancel()
             except face.CancellationError:
                 # This happens because of the interrupt handler
