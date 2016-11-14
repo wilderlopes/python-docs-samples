@@ -2,7 +2,7 @@
 
 This sample shows you how to use the [Google Cloud Speech API][speech-api]
 to transcribe live audio from your computer's microphone and transmit it to
-a custom search API.
+a custom search API or web browser.
 
 [speech-api]: http://cloud.google.com/speech
 

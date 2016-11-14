@@ -17,10 +17,11 @@
 from __future__ import division
 
 import contextlib
+import getopt
 import re
 import signal
-import sys
 import subprocess
+import sys
 import threading
 import urllib
 import webbrowser
@@ -40,7 +41,7 @@ from six.moves import queue
 CSE_KEY = 'YOUR_API_KEY' # Replace with your developer key
 CSE_ID = '00000000012345:aaa7bbb_cc' # Replace with your CSE ID
 USE_OSX_SAY = True # Issues on OSX w/ pyttsx; if true, uses 'Say' alternate
-OPEN_IN_BROWSER = True # If true, only open the result in a browser
+OPEN_IN_BROWSER = False # If true, only open the result in a browser
 
 # Audio recording parameters
 RATE = 16000
@@ -224,9 +225,7 @@ def listen_search_loop(recognize_stream, stoprequest):
         # Retrieve search results using speech result
         if update_search and resp.results:
             first_result = resp.results[0].alternatives[0]
-            if first_result is not last_search:
-                print('Searching for ' + first_result.transcript)
-                print('Last searched for ' + last_search)
+            if first_result.transcript != last_search:
                 last_search = first_result.transcript
                 google_search(last_search, num=10)
                 if len(first_result.transcript) > 0:
@@ -251,6 +250,7 @@ def say_result(index):
 def google_search(search_term, **kwargs):
     """Uses the custom search to query for the user's utterance."""
     global _results
+    print 'Searching for :' + search_term
 
     if OPEN_IN_BROWSER:
       webbrowser.open('https://google.com/#q=' + urllib.quote(search_term))
@@ -259,7 +259,14 @@ def google_search(search_term, **kwargs):
       res = service.cse().list(q=search_term, cx=CSE_ID, **kwargs).execute()
       _results = res['items']
 
-def main():
+def main(argv):
+    global OPEN_IN_BROWSER
+    for arg in argv:
+        if arg == '--usebrowser' || CSE_KEY == 'YOUR_API_KEY' ||
+                  CSE_ID == '00000000012345:aaa7bbb_cc':
+            print 'Opening results in your default browser.'
+            OPEN_IN_BROWSER=True
+
     with cloud_speech.beta_create_Speech_stub(
             make_channel('speech.googleapis.com', 443)) as service:
 
@@ -292,4 +299,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])
