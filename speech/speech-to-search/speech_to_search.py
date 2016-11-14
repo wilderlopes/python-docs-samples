@@ -262,10 +262,13 @@ def google_search(search_term, **kwargs):
 def main(argv):
     global OPEN_IN_BROWSER
     for arg in argv:
-        if arg == '--usebrowser' || CSE_KEY == 'YOUR_API_KEY' ||
-                  CSE_ID == '00000000012345:aaa7bbb_cc':
+        if arg == '--usebrowser':
             print 'Opening results in your default browser.'
             OPEN_IN_BROWSER=True
+
+    if CSE_KEY == 'YOUR_API_KEY' or CSE_ID == '00000000012345:aaa7bbb_cc':
+        print 'Sample not configured, opening in default browser.'
+        OPEN_IN_BROWSER=True
 
     with cloud_speech.beta_create_Speech_stub(
             make_channel('speech.googleapis.com', 443)) as service:
